@@ -20,6 +20,35 @@ const bool enableValidationLayers = false;
 const bool enableValidationLayers = true;
 #endif
 
+VkResult CreateDebugUtilsMessengerEXT(VkInstance instance, 
+	const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo,
+	const VkAllocationCallbacks* pAllocator,
+	VkDebugUtilsMessengerEXT* pDebugMessenger) {
+	
+	auto func = (PFN_vkCreateDebugUtilsMessengerEXT) vkGetInstanceProcAddr(
+		instance, 
+		"vkCreateDebugUtilsMessengerEXT");
+	if (func != nullptr) {
+		return func(instance, pCreateInfo, pAllocator, pDebugMessenger);
+	}
+	else {
+		return VK_ERROR_EXTENSION_NOT_PRESENT;
+	}
+}
+
+void DestroyDebugUtilsMessengerEXT(VkInstance instance,
+	VkDebugUtilsMessengerEXT debugMessenger,
+	const VkAllocationCallbacks* pAllocator) {
+
+	auto func = (PFN_vkDestroyDebugUtilsMessengerEXT)vkGetInstanceProcAddr(
+		instance, 
+		"vkDestroyDebugUtilsMessengerEXT");
+	if (func != nullptr) {
+		func(instance, debugMessenger, pAllocator);
+	}
+}
+
+
 class HelloTriangleApplication {
 public:
 	void run() {
@@ -33,6 +62,8 @@ private:
 	GLFWwindow* window;
 	// Vulkan instance handle
 	VkInstance instance;
+	// Debug messenger
+	VkDebugUtilsMessengerEXT debugMessenger;
 
 private:
 	void initWindow() {
@@ -50,6 +81,7 @@ private:
 
 	void initVulkan() {
 		createInstance();
+		setupDebugMessenger();
 	}
 
 	void createInstance() {
@@ -73,23 +105,22 @@ private:
 		createInfo.pApplicationInfo = &appInfo;
 
 		// Check for extensions required for vulkan
-		uint32_t glfwExtensionCount = 0;
+		auto extensions = getRequiredExtensions();
 
-		const char** glfwExtensions;
-
-		glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
-
-#ifdef _DEBUG
-		allExtensionsRequired(glfwExtensions, glfwExtensionCount);
-#endif
-		createInfo.enabledExtensionCount = glfwExtensionCount;
-		createInfo.ppEnabledExtensionNames = glfwExtensions;
+		createInfo.enabledExtensionCount = static_cast<uint32_t>(extensions.size());
+		createInfo.ppEnabledExtensionNames = extensions.data();
+		VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo{};
 		if (enableValidationLayers) {
 			createInfo.enabledLayerCount = static_cast<uint32_t>(validationLayers.size());
 			createInfo.ppEnabledLayerNames = validationLayers.data();
+
+			populateDebugMessengerCreateInfo(debugCreateInfo);
+			createInfo.pNext = (VkDebugUtilsMessengerCreateInfoEXT*)&debugCreateInfo;
 		}
 		else {
 			createInfo.enabledLayerCount = 0;
+
+			createInfo.pNext = nullptr;
 		}
 
 		// Create the instance
@@ -125,6 +156,21 @@ private:
 		return true;
 	}
 
+	// Enable validation layer handling extensions
+	std::vector<const char*> getRequiredExtensions() {
+		uint32_t glfwExtensionCount = 0;
+		const char** glfwExtensions;
+		glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
+
+		std::vector<const char*> extensions(glfwExtensions, glfwExtensions + glfwExtensionCount);
+
+		if (enableValidationLayers) {
+			extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+		}
+
+		return extensions;
+	}
+
 	void mainLoop() {
 		// Poll for events while the window is open
 		while (!glfwWindowShouldClose(window)) {
@@ -133,6 +179,11 @@ private:
 	}
 
 	void cleanup() {
+		// Cleanup debug messenger
+		if (enableValidationLayers) {
+			DestroyDebugUtilsMessengerEXT(instance, debugMessenger, nullptr);
+		}
+
 		// Cleanup vulkan instance
 		vkDestroyInstance(instance, nullptr);
 
@@ -143,9 +194,45 @@ private:
 		glfwTerminate();
 	}
 
+	void populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo) {
+		createInfo = {};
+		createInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
+		createInfo.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT |
+			VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT |
+			VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
+		createInfo.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT |
+			VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT |
+			VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
+		createInfo.pfnUserCallback = debugCallback;
+	}
+
+	void setupDebugMessenger() {
+		if (!enableValidationLayers) return;
+
+		// Debug messenger struct
+		VkDebugUtilsMessengerCreateInfoEXT createInfo;
+		populateDebugMessengerCreateInfo(createInfo);
+
+		if (CreateDebugUtilsMessengerEXT(instance, &createInfo, nullptr, &debugMessenger) != VK_SUCCESS) {
+			throw std::runtime_error("failed to setup debug messenger!");
+		}
+	}
+
+	// Custom debug callback
+	static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
+		VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
+		VkDebugUtilsMessageTypeFlagsEXT messageType,
+		const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
+		void* pUserData) {
+		// TODO: Implement console text coloring based on severity
+		std::cerr << "validation layer " << pCallbackData->pMessage << std::endl;
+
+		return VK_FALSE;
+	}
+
 	// Challenge Problem: Check if all supported
 	// extensions are required
-	void allExtensionsRequired(const char** glfwExtensions, uint32_t glfwExtensionCount) {
+	void allExtensionsRequired(std::vector<const char*> glfwExtensions, uint32_t glfwExtensionCount) {
 		// Get all supported extensions
 		uint32_t extensionCount = 0;
 		vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, nullptr);
