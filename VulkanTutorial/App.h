@@ -9,6 +9,7 @@
 #include <algorithm>
 #include <optional>
 #include <set>
+#include <limits>
 
 const uint32_t WIDTH = 800;
 const uint32_t HEIGHT = 600;
@@ -39,7 +40,11 @@ public:
 			m_PhysicalDevice{ VK_NULL_HANDLE },
 			m_Device(VK_NULL_HANDLE),
 			m_GraphicsQueue(VK_NULL_HANDLE),
-			m_PresentQueue(VK_NULL_HANDLE) {}
+			m_PresentQueue(VK_NULL_HANDLE),
+			m_SwapChain(VK_NULL_HANDLE),
+			m_SwapChainImages({}),
+			m_SwapChainImageFormat(VK_FORMAT_UNDEFINED),
+			m_SwapChainExtent({0, 0}) {}
 	void run();
 
 	// Class members
@@ -52,14 +57,26 @@ private:
 	VkDevice m_Device; // Logical device
 	VkQueue m_GraphicsQueue;
 	VkQueue m_PresentQueue;
+	VkSwapchainKHR m_SwapChain;
+	std::vector<VkImage> m_SwapChainImages;
+	VkFormat m_SwapChainImageFormat;
+	VkExtent2D m_SwapChainExtent;
 
 	// Class structs
 private:
-	struct QueueFamilyIndices {
+	struct SwapChainSupportDetails 
+	{
+		VkSurfaceCapabilitiesKHR capabilities;
+		std::vector<VkSurfaceFormatKHR> formats;
+		std::vector<VkPresentModeKHR> presentModes;
+	};
+
+	struct QueueFamilyIndices 
+	{
 		std::optional<uint32_t> graphicsFamily;
 		std::optional<uint32_t> presentFamily;
 
-		bool isComplete() {
+		bool IsComplete() {
 			return graphicsFamily.has_value() && presentFamily.has_value();
 		}
 	};
@@ -76,10 +93,15 @@ private:
 	bool CheckDeviceExtensionSupport(VkPhysicalDevice device);
 	QueueFamilyIndices FindQueueFamilies(VkPhysicalDevice device);
 	void CreateLogicalDevice();
+	void CreateSwapChain();
 	void MainLoop();
 	void Cleanup();
 	void PopulateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo);
 	void SetupDebugMessenger();
+	SwapChainSupportDetails QuerySwapChainSupport(VkPhysicalDevice device);
+	VkSurfaceFormatKHR ChooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats);
+	VkPresentModeKHR ChooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes);
+	VkExtent2D ChooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities);
 
 	// Challenge Problems
 	void AllExtensionsRequired(std::vector<const char*> glfwExtensions, uint32_t glfwExtensionCount);
