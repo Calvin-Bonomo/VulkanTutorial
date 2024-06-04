@@ -10,9 +10,11 @@
 #include <optional>
 #include <set>
 #include <limits>
+#include <fstream>
 
 const uint32_t WIDTH = 800;
 const uint32_t HEIGHT = 600;
+const int MAX_FRAMES_IN_FLIGHT = 2;
 
 const std::vector<const char*> validationLayers = 
 {
@@ -44,7 +46,18 @@ public:
 			m_SwapChain(VK_NULL_HANDLE),
 			m_SwapChainImages({}),
 			m_SwapChainImageFormat(VK_FORMAT_UNDEFINED),
-			m_SwapChainExtent({0, 0}) {}
+			m_SwapChainExtent({0, 0}),
+			m_SwapChainImageViews({}),
+			m_RenderPass(VK_NULL_HANDLE),
+			m_PipelineLayout(VK_NULL_HANDLE),
+			m_GraphicsPipeline(VK_NULL_HANDLE),
+			m_SwapChainFramebuffers({}),
+			m_CommandPool(VK_NULL_HANDLE),
+			m_CommandBuffers({}),
+			m_ImageAvailableSemaphores({}),
+			m_RenderFinishedSemaphores({}),
+			m_InFlightFences({}),
+			m_CurrentFrame(0) {}
 	void run();
 
 	// Class members
@@ -61,6 +74,17 @@ private:
 	std::vector<VkImage> m_SwapChainImages;
 	VkFormat m_SwapChainImageFormat;
 	VkExtent2D m_SwapChainExtent;
+	std::vector<VkImageView> m_SwapChainImageViews;
+	VkRenderPass m_RenderPass;
+	VkPipelineLayout m_PipelineLayout;
+	VkPipeline m_GraphicsPipeline;
+	std::vector<VkFramebuffer> m_SwapChainFramebuffers;
+	VkCommandPool m_CommandPool;
+	std::vector<VkCommandBuffer> m_CommandBuffers;
+	std::vector<VkSemaphore> m_ImageAvailableSemaphores;
+	std::vector<VkSemaphore> m_RenderFinishedSemaphores;
+	std::vector<VkFence> m_InFlightFences;
+	uint32_t m_CurrentFrame;
 
 	// Class structs
 private:
@@ -102,6 +126,16 @@ private:
 	VkSurfaceFormatKHR ChooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats);
 	VkPresentModeKHR ChooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes);
 	VkExtent2D ChooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities);
+	void CreateImageViews();
+	void CreateGraphicsPipeline();
+	VkShaderModule CreateShaderModule(const std::vector<char>& code);
+	void CreateRenderPass();
+	void CreateFramebuffers();
+	void CreateCommandPool();
+	void CreateCommandBuffers();
+	void RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex);
+	void DrawFrame();
+	void CreateSyncObjects();
 
 	// Challenge Problems
 	void AllExtensionsRequired(std::vector<const char*> glfwExtensions, uint32_t glfwExtensionCount);
