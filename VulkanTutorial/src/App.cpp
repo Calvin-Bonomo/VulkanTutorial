@@ -916,7 +916,7 @@ void HelloTriangleApplication::DrawFrame()
 
 	vkQueuePresentKHR(m_PresentQueue, &presentInfo);
 
-	m_CurrentFrame = m_CurrentFrame + 1 % MAX_FRAMES_IN_FLIGHT;
+	m_CurrentFrame = (m_CurrentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
 }
 
 void HelloTriangleApplication::CreateSyncObjects() 
@@ -931,6 +931,7 @@ void HelloTriangleApplication::CreateSyncObjects()
 	VkFenceCreateInfo fenceInfo{};
 	fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
 	fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
+
 	for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) 
 	{
 		if (vkCreateSemaphore(m_Device, &semaphoreInfo, nullptr, &m_ImageAvailableSemaphores[i]) != VK_SUCCESS ||
