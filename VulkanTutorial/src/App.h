@@ -57,7 +57,8 @@ public:
 			m_ImageAvailableSemaphores({}),
 			m_RenderFinishedSemaphores({}),
 			m_InFlightFences({}),
-			m_CurrentFrame(0) {}
+			m_CurrentFrame(0),
+			m_FramebufferResized(false) {}
 	void run();
 
 	// Class members
@@ -85,6 +86,7 @@ private:
 	std::vector<VkSemaphore> m_RenderFinishedSemaphores;
 	std::vector<VkFence> m_InFlightFences;
 	uint32_t m_CurrentFrame;
+	bool m_FramebufferResized;
 
 	// Class structs
 private:
@@ -136,6 +138,8 @@ private:
 	void RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex);
 	void DrawFrame();
 	void CreateSyncObjects();
+	void RecreateSwapChain();
+	void CleanupSwapChain();
 
 	// Challenge Problems
 	void AllExtensionsRequired(std::vector<const char*> glfwExtensions, uint32_t glfwExtensionCount);
@@ -146,10 +150,17 @@ private:
 		VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
 		VkDebugUtilsMessageTypeFlagsEXT messageType,
 		const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
-		void* pUserData) {
+		void* pUserData) 
+	{
 		// TODO: Implement console text coloring based on severity
 		std::cerr << "validation layer " << pCallbackData->pMessage << std::endl;
 
 		return VK_FALSE;
+	}
+
+	static void FramebufferResizeCallback(GLFWwindow* window, int width, int height) 
+	{
+		auto app = reinterpret_cast<HelloTriangleApplication*>(glfwGetWindowUserPointer(window));
+		app->m_FramebufferResized = true;
 	}
 };
