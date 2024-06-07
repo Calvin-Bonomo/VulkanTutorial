@@ -4,4 +4,6 @@ A Vulkan renderer following the tutorial at [Vulkan Tutorial](https://vulkan-tut
 
 ## Future Considerations
 - Use smartpointers instead of raw pointers.
-- Move the renderer into another class, App should just be asking the renderer to draw stuff
+- Move the renderer into another class, App should just be asking the renderer to draw stuff.
+- Extend for use with Direct3D and/or OpenGL.
+- Please for the love of god document this.
