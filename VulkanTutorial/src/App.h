@@ -12,6 +12,8 @@
 #include <limits>
 #include <fstream>
 
+#include "Vertex.h"
+
 const uint32_t WIDTH = 800;
 const uint32_t HEIGHT = 600;
 const int MAX_FRAMES_IN_FLIGHT = 2;
@@ -24,6 +26,13 @@ const std::vector<const char*> validationLayers =
 const std::vector<const char*> deviceExtensions = 
 {
 	VK_KHR_SWAPCHAIN_EXTENSION_NAME,
+};
+
+const std::vector<Vertex> vertices =
+{
+	{ {  0.0f, -0.5f }, { 1.0f, 0.0f, 0.0f } },
+	{ {  0.5f,  0.5f }, { 0.0f, 1.0f, 0.0f } },
+	{ { -0.5f,  0.5f }, { 0.0f, 0.0f, 1.0f } },
 };
 
 #ifndef _DEBUG
@@ -58,7 +67,8 @@ public:
 			m_RenderFinishedSemaphores({}),
 			m_InFlightFences({}),
 			m_CurrentFrame(0),
-			m_FramebufferResized(false) {}
+			m_FramebufferResized(false),
+			m_VertexBuffer(VK_NULL_HANDLE) {}
 	void run();
 
 	// Class members
@@ -87,6 +97,8 @@ private:
 	std::vector<VkFence> m_InFlightFences;
 	uint32_t m_CurrentFrame;
 	bool m_FramebufferResized;
+	VkBuffer m_VertexBuffer;
+	VkDeviceMemory m_VertexBufferMemory;
 
 	// Class structs
 private:
@@ -140,6 +152,8 @@ private:
 	void CreateSyncObjects();
 	void RecreateSwapChain();
 	void CleanupSwapChain();
+	void CreateVertexBuffer();
+	uint32_t FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
 
 	// Challenge Problems
 	void AllExtensionsRequired(std::vector<const char*> glfwExtensions, uint32_t glfwExtensionCount);
