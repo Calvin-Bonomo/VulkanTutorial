@@ -30,9 +30,15 @@ const std::vector<const char*> deviceExtensions =
 
 const std::vector<Vertex> vertices =
 {
-	{ {  0.0f, -0.5f }, { 1.0f, 0.0f, 0.0f } },
-	{ {  0.5f,  0.5f }, { 0.0f, 1.0f, 0.0f } },
-	{ { -0.5f,  0.5f }, { 0.0f, 0.0f, 1.0f } },
+	{ { -0.5f, -0.5f }, { 1.0f, 0.0f, 0.0f } },
+	{ {  0.5f, -0.5f }, { 0.0f, 1.0f, 0.0f } },
+	{ {  0.5f,  0.5f }, { 0.0f, 0.0f, 1.0f } },
+	{ { -0.5f,  0.5f }, { 1.0f, 1.0f, 1.0f } },
+};
+
+const std::vector<uint16_t> indices =
+{
+	0, 1, 2, 2, 3, 0
 };
 
 #ifndef _DEBUG
@@ -68,12 +74,13 @@ public:
 			m_InFlightFences({}),
 			m_CurrentFrame(0),
 			m_FramebufferResized(false),
-			m_VertexBuffer(VK_NULL_HANDLE) {}
+			m_VertexBuffer(VK_NULL_HANDLE),
+			m_VertexBufferMemory(VK_NULL_HANDLE) {}
 	void run();
 
 	// Class members
 private:
-	GLFWwindow* m_pWindow; // glfw window object
+	GLFWwindow *m_pWindow; // glfw window object
 	VkInstance m_Instance; // Vulkan instance handle
 	VkDebugUtilsMessengerEXT m_DebugMessenger; // Debug messenger
 	VkSurfaceKHR m_Surface; // Render surface
@@ -99,6 +106,8 @@ private:
 	bool m_FramebufferResized;
 	VkBuffer m_VertexBuffer;
 	VkDeviceMemory m_VertexBufferMemory;
+	VkBuffer m_IndexBuffer;
+	VkDeviceMemory m_IndexBufferMemory;
 
 	// Class structs
 private:
@@ -134,15 +143,15 @@ private:
 	void CreateSwapChain();
 	void MainLoop();
 	void Cleanup();
-	void PopulateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo);
+	void PopulateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT &createInfo);
 	void SetupDebugMessenger();
 	SwapChainSupportDetails QuerySwapChainSupport(VkPhysicalDevice device);
-	VkSurfaceFormatKHR ChooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats);
-	VkPresentModeKHR ChooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes);
-	VkExtent2D ChooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities);
+	VkSurfaceFormatKHR ChooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR> &availableFormats);
+	VkPresentModeKHR ChooseSwapPresentMode(const std::vector<VkPresentModeKHR> &availablePresentModes);
+	VkExtent2D ChooseSwapExtent(const VkSurfaceCapabilitiesKHR &capabilities);
 	void CreateImageViews();
 	void CreateGraphicsPipeline();
-	VkShaderModule CreateShaderModule(const std::vector<char>& code);
+	VkShaderModule CreateShaderModule(const std::vector<char> &code);
 	void CreateRenderPass();
 	void CreateFramebuffers();
 	void CreateCommandPool();
@@ -154,6 +163,9 @@ private:
 	void CleanupSwapChain();
 	void CreateVertexBuffer();
 	uint32_t FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
+	void CreateBuffer(VkDeviceSize size, VkBufferUsageFlags flags, VkMemoryPropertyFlags properties, VkBuffer &buffer, VkDeviceMemory &bufferMemory);
+	void CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
+	void CreateIndexBuffer();
 
 	// Challenge Problems
 	void AllExtensionsRequired(std::vector<const char*> glfwExtensions, uint32_t glfwExtensionCount);
