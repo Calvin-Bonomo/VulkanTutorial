@@ -33,7 +33,7 @@
   <ItemGroup>
     <None Include="shaders\shader.vert" />
     <None Include="shaders\shader.frag" />
-    <None Include="shaders\compile.bat">
+    <None Include="shaders\compile_shaders.bat">
       <Filter>Source Files</Filter>
     </None>
   </ItemGroup>

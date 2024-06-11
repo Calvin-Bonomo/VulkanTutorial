@@ -1,6 +1,10 @@
 #pragma once
 
+#define GLM_FORCE_RADIANS
+
 #include <GLFW/glfw3.h>
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 
 #include <iostream>
 #include <stdexcept>
@@ -11,6 +15,7 @@
 #include <set>
 #include <limits>
 #include <fstream>
+#include <chrono>
 
 #include "Vertex.h"
 
@@ -50,33 +55,41 @@ const bool enableValidationLayers = true;
 class HelloTriangleApplication {
 public:
 	HelloTriangleApplication() : 
-			m_pWindow(nullptr), 
-			m_Instance(VK_NULL_HANDLE), 
-			m_DebugMessenger(VK_NULL_HANDLE),
-			m_Surface(VK_NULL_HANDLE),
-			m_PhysicalDevice{ VK_NULL_HANDLE },
-			m_Device(VK_NULL_HANDLE),
-			m_GraphicsQueue(VK_NULL_HANDLE),
-			m_PresentQueue(VK_NULL_HANDLE),
-			m_SwapChain(VK_NULL_HANDLE),
-			m_SwapChainImages({}),
-			m_SwapChainImageFormat(VK_FORMAT_UNDEFINED),
-			m_SwapChainExtent({0, 0}),
-			m_SwapChainImageViews({}),
-			m_RenderPass(VK_NULL_HANDLE),
-			m_PipelineLayout(VK_NULL_HANDLE),
-			m_GraphicsPipeline(VK_NULL_HANDLE),
-			m_SwapChainFramebuffers({}),
-			m_CommandPool(VK_NULL_HANDLE),
-			m_CommandBuffers({}),
-			m_ImageAvailableSemaphores({}),
-			m_RenderFinishedSemaphores({}),
-			m_InFlightFences({}),
-			m_CurrentFrame(0),
-			m_FramebufferResized(false),
-			m_VertexBuffer(VK_NULL_HANDLE),
-			m_VertexBufferMemory(VK_NULL_HANDLE) {}
-	void run();
+		m_pWindow(nullptr), 
+		m_Instance(VK_NULL_HANDLE), 
+		m_DebugMessenger(VK_NULL_HANDLE),
+		m_Surface(VK_NULL_HANDLE),
+		m_PhysicalDevice{ VK_NULL_HANDLE },
+		m_Device(VK_NULL_HANDLE),
+		m_GraphicsQueue(VK_NULL_HANDLE),
+		m_PresentQueue(VK_NULL_HANDLE),
+		m_SwapChain(VK_NULL_HANDLE),
+		m_SwapChainImages({}),
+		m_SwapChainImageFormat(VK_FORMAT_UNDEFINED),
+		m_SwapChainExtent({0, 0}),
+		m_SwapChainImageViews({}),
+		m_RenderPass(VK_NULL_HANDLE),
+		m_PipelineLayout(VK_NULL_HANDLE),
+		m_DescriptorSetLayout(VK_NULL_HANDLE),
+		m_GraphicsPipeline(VK_NULL_HANDLE),
+		m_SwapChainFramebuffers({}),
+		m_CommandPool(VK_NULL_HANDLE),
+		m_CommandBuffers({}),
+		m_ImageAvailableSemaphores({}),
+		m_RenderFinishedSemaphores({}),
+		m_InFlightFences({}),
+		m_CurrentFrame(0),
+		m_FramebufferResized(false),
+		m_VertexBuffer(VK_NULL_HANDLE),
+		m_VertexBufferMemory(VK_NULL_HANDLE),
+		m_IndexBuffer(VK_NULL_HANDLE),
+		m_IndexBufferMemory(VK_NULL_HANDLE),
+		m_UniformBuffers({}),
+		m_UniformBuffersMemory({}),
+		m_UniformBuffersMapped({}),
+		m_DescriptorPool(VK_NULL_HANDLE),
+		m_DescriptorSets({}) {}
+	void Run();
 
 	// Class members
 private:
@@ -94,6 +107,7 @@ private:
 	VkExtent2D m_SwapChainExtent;
 	std::vector<VkImageView> m_SwapChainImageViews;
 	VkRenderPass m_RenderPass;
+	VkDescriptorSetLayout m_DescriptorSetLayout;
 	VkPipelineLayout m_PipelineLayout;
 	VkPipeline m_GraphicsPipeline;
 	std::vector<VkFramebuffer> m_SwapChainFramebuffers;
@@ -108,6 +122,11 @@ private:
 	VkDeviceMemory m_VertexBufferMemory;
 	VkBuffer m_IndexBuffer;
 	VkDeviceMemory m_IndexBufferMemory;
+	std::vector<VkBuffer> m_UniformBuffers;
+	std::vector<VkDeviceMemory> m_UniformBuffersMemory;
+	std::vector<void*> m_UniformBuffersMapped;
+	VkDescriptorPool m_DescriptorPool;
+	std::vector<VkDescriptorSet> m_DescriptorSets;
 
 	// Class structs
 private:
@@ -126,6 +145,12 @@ private:
 		bool IsComplete() {
 			return graphicsFamily.has_value() && presentFamily.has_value();
 		}
+	};
+
+	struct UniformBufferObject {
+		glm::mat4 model;
+		glm::mat4 view;
+		glm::mat4 proj;
 	};
 
 private:
@@ -166,6 +191,11 @@ private:
 	void CreateBuffer(VkDeviceSize size, VkBufferUsageFlags flags, VkMemoryPropertyFlags properties, VkBuffer &buffer, VkDeviceMemory &bufferMemory);
 	void CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
 	void CreateIndexBuffer();
+	void CreateDescriptorSetLayout();
+	void CreateUniformBuffers();
+	void UpdateUniformBuffer(uint32_t currentImage);
+	void CreateDescriptorPool();
+	void CreateDescriptorSets();
 
 	// Challenge Problems
 	void AllExtensionsRequired(std::vector<const char*> glfwExtensions, uint32_t glfwExtensionCount);
