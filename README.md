@@ -1,6 +1,8 @@
 # VulkanTutorial
 
-A Vulkan renderer following the tutorial at [Vulkan Tutorial](https://vulkan-tutorial.com/Introduction) with some modifications to the coding style for legibility.
+A Vulkan renderer following the tutorial at [Vulkan Tutorial](https://vulkan-tutorial.com/Introduction) with 
+some modifications to the coding style for legibility. It uses stb_image, GLFW, and glm; all of which can be 
+found in the `dependencies` folder.
 
 ## Learning Goals
 I started this project in order to learn about Vulkan and modern 3D rendering technques and APIs. 
