@@ -392,7 +392,6 @@ void HelloTriangleApplication::Cleanup()
 
 	vkDestroyDescriptorPool(m_Device, m_DescriptorPool, nullptr);
 	vkDestroyDescriptorSetLayout(m_Device, m_DescriptorSetLayout, nullptr);
-
 	vkDestroyBuffer(m_Device, m_IndexBuffer, nullptr);
 	vkFreeMemory(m_Device, m_IndexBufferMemory, nullptr);
 
