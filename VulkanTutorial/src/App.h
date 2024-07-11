@@ -2,7 +2,9 @@
 
 #define GLM_FORCE_RADIANS
 #define GLFW_INCLUDE_VULKAN
+#define STB_IMAGE_IMPLEMENTATION
 
+#include <stb_image.h>
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -128,6 +130,8 @@ private:
 	std::vector<void*> m_UniformBuffersMapped;
 	VkDescriptorPool m_DescriptorPool;
 	std::vector<VkDescriptorSet> m_DescriptorSets;
+	VkImage m_TextureImage;
+	VkDeviceMemory m_TextureImageMemory;
 
 	// Class structs
 private:
@@ -197,6 +201,13 @@ private:
 	void UpdateUniformBuffer(uint32_t currentImage);
 	void CreateDescriptorPool();
 	void CreateDescriptorSets();
+	void CreateTextureImage();
+	void CreateImage(uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image, VkDeviceMemory& imageMemory);
+	VkCommandBuffer BeginSingleTimeCommands();
+	void EndSingleTimeCommands(VkCommandBuffer commandBuffer);
+	void TransitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout);
+	void CopyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height);
+
 
 	// Challenge Problems
 	void AllExtensionsRequired(std::vector<const char*> glfwExtensions, uint32_t glfwExtensionCount);
